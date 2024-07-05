@@ -1,0 +1,95 @@
+//Reyes Contreras Ramses
+//5A
+//Desarrollo de Aplicaciones Multiplataforma
+
+
+//Evidencias del Examen 2:
+
+// - Componente para el formulario de SignIn para usuarios registrados
+
+<Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Password"
+        secureTextEntry
+      />
+      
+
+// - Componente para el formulario de SignUp en caso de que el usuario no tenga cuenta
+
+<View style={styles.buttonContainer}>
+        <Button
+          title={isLogin ? 'Sign In' : 'Sign Up'}
+          color='#3498db'
+          onPress={handleAuthentication}
+        />
+      </View>
+      <View style={styles.bottomContainer}>
+        <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
+          {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+        </Text>
+      </View>
+
+// - Componente para realizar el SignIn y autenticarse en FireBase
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
+  const [isLogin, setIsLogin] = useState(true);
+
+  const auth = getAuth(app);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, [auth]);
+
+  const handleAuthentication = async () => {
+    try {
+      if (user) {
+        console.log('User logged out successfully');
+        await signOut(auth);
+      } else {
+        if (isLogin) {
+          await signInWithEmailAndPassword(auth, email, password);
+          console.log('User signed in successfully');
+        } else {
+          await createUserWithEmailAndPassword(auth, email, password);
+          console.log('User created successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error.message);
+    }
+  }
+
+// - Componente para realizar el SignUp en Firebase
+
+   return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {user ? (
+        <AuthenticatedScreen user={user} handleAuthentication={handleAuthentication} />
+      ) : (
+        <AuthScreen
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          isLogin={isLogin}
+          setIsLogin={setIsLogin}
+          handleAuthentication={handleAuthentication}
+        />
+      )}
+    </ScrollView>
+  );
